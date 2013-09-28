@@ -1,5 +1,5 @@
 {
-  "title": "Introduction",
+  "title": "Your Basic Dashboard",
   "services": {
     "query": {
       "idQueue": [
@@ -13,7 +13,9 @@
           "query": "*",
           "alias": "",
           "color": "#7EB26D",
-          "id": 0
+          "id": 0,
+          "pin": false,
+          "type": "lucene"
         }
       },
       "ids": [
@@ -22,60 +24,60 @@
     },
     "filter": {
       "idQueue": [
+        0,
         1,
         2
       ],
-      "list": {
-        "0": {
-          "from": "2013-07-27T22:08:06.800Z",
-          "to": "2013-07-27T23:08:06.801Z",
-          "field": "@timestamp",
-          "type": "time",
-          "mandate": "must",
-          "active": true,
-          "alias": "",
-          "id": 0
-        }
-      },
-      "ids": [
-        0
-      ]
+      "list": {},
+      "ids": []
     }
   },
   "rows": [
     {
-      "title": "Intro",
-      "height": "450px",
+      "title": "Options",
+      "height": "50px",
       "editable": true,
       "collapse": false,
-      "collapsable": false,
+      "collapsable": true,
       "panels": [
         {
           "error": false,
-          "span": 4,
+          "span": 5,
           "editable": true,
           "group": [
             "default"
           ],
           "type": "text",
+          "status": "Stable",
           "mode": "markdown",
-          "content": "![kibana](img/kibana.png)  \n\n##### Did you just upgrade? Not expecting this screen?\nIf you were using the old default page you might not be expecting this screen. I understand, change can be awkward. Let me explain. \n\n##### Setting a global default dashboard\nKibana has always shipped with an interface for Logstash, still does! You can access it [here](index.html#dashboard/file/logstash.json). However, if you want to make it your default again, all you you need to do is rename a file!\nIn your Kibana installation directory: \n\nRename *logstash.json* to *default.json* and refresh. Should be all set.\n\n##### But wait, there's more!\nIn fact, you can add any exported dashboard to that directory and access it as *http://YOUR-HOST -HERE/index.html#dashboard/file/YOUR-DASHBOARD.json*. Neat trick eh?",
+          "content": "If you have a field with a timestamp in it, you might want to add a 'timepicker' panel here. Click the cog icon over to the left to do so. You can also remove these information text panels there",
           "style": {},
-          "title": "",
-          "status": "Stable"
-        },
+          "title": "Have a timestamp somewhere?"
+        }
+      ]
+    },
+    {
+      "title": "Query",
+      "height": "50px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
         {
           "error": false,
-          "span": 1,
-          "editable": false,
+          "span": 5,
+          "editable": true,
           "group": [
             "default"
           ],
-          "type": "text",
-          "mode": "markdown",
-          "content": "",
-          "style": {},
-          "status": "Stable"
+          "type": "query",
+          "label": "Search",
+          "history": [
+            "*"
+          ],
+          "remember": 10,
+          "pinned": true,
+          "query": "*"
         },
         {
           "error": false,
@@ -85,18 +87,183 @@
             "default"
           ],
           "type": "text",
+          "status": "Stable",
           "mode": "markdown",
-          "content": "### Welcome to Kibana. \nGlad you could make it. Happy to have you here! Lets get started, shall we?\n##### Requirements\n* **A good browser.**  \n    The latest version of Chrome or Firefox is recommended. Safari (latest version) and Internet Explorer 9 and above are also supported.\n* **A webserver.**  \n    Just somewhere to host the HTML and Javascript. Basically any webserver will work.\n* **Elasticsearch**  \n   0.20.5 or above. Kibana will soon move to requiring Elasticsearch 0.90 or above, so upgrading is recommended.\n\n##### Configuration\nIf Kibana and Elasticsearch are on the same host, and you're using the default Elasticsearch port, then you're all set. Kibana is configured to use that setup by default!  \n\nIf not, you need to edit *config.js* and set the *elasticsearch* parameter with the URL (including port, probably 9200) of your Elasticsearch server. The host part should be the entire, fully qualified domain name, or IP, **not localhost**.\n#### Are you a Logstash User?\n+ **YES** - Great! We have a prebuilt dashboard: [(Logstash Dashboard)](index.html#/dashboard/file/logstash.json). See the note to the right about making it your global default  \n\n+ **NO** - Hey, no problem, you just have a bit of setup to do. You have a few choices:  \n\n    1. [Sample Dashboard](index.html#/dashboard/file/guided.json) *I don't have much data yet, please extract some basics for me*  \n    2. [Unconfigured Dashboard](index.html#/dashboard/file/noted.json) *I have a lot of data and I don't want Kibana to query it at once*\n    3. [Blank Dashboard](index.html#/dashboard/file/blank.json) *I'm comfortable figuring it out on my own*",
-          "style": {},
-          "status": "Stable"
+          "content": "#### Filtering\nSee the small *Filters* text to the left below? Click it to expand the filters row. Right now there are none. click on one of the icons in the document types list to filter down to only that document type",
+          "style": {}
+        }
+      ]
+    },
+    {
+      "title": "Filters",
+      "height": "50px",
+      "editable": true,
+      "collapse": true,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "filtering"
+        }
+      ]
+    },
+    {
+      "title": "Graph",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 3,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "terms",
+          "queries": {
+            "mode": "all",
+            "ids": [
+              0
+            ]
+          },
+          "field": "_type",
+          "exclude": [],
+          "missing": true,
+          "other": true,
+          "size": 100,
+          "order": "count",
+          "style": {
+            "font-size": "10pt"
+          },
+          "donut": false,
+          "tilt": false,
+          "labels": true,
+          "arrangement": "horizontal",
+          "chart": "pie",
+          "counter_pos": "none",
+          "title": "Document types",
+          "spyable": true
+        },
+        {
+          "error": false,
+          "span": 3,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "terms",
+          "queries": {
+            "mode": "all",
+            "ids": [
+              0
+            ]
+          },
+          "field": "_type",
+          "exclude": [],
+          "missing": true,
+          "other": true,
+          "size": 10,
+          "order": "count",
+          "style": {
+            "font-size": "10pt"
+          },
+          "donut": false,
+          "tilt": false,
+          "labels": true,
+          "arrangement": "horizontal",
+          "chart": "table",
+          "counter_pos": "above",
+          "spyable": true
+        },
+        {
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "text",
+          "status": "Stable",
+          "mode": "markdown",
+          "content": "### The most generic dashboard ever\nIt's the best I can do without knowing much about your data! I've tried to pick some sane defaults for you. The two *terms* panels to the left of this *text* panel show a breakdown of your document type. \n\nKibana is currently configured to point at the special Elasticsearch *_all* index. You can change that by clicking on the cog icon in the title bar. You can also add rows from that dialog. You can edit individual panels by click on the link that appears in their top right when yuo mouse over them\n\nThe *table* panel below has attempted to list your fields to the left, select a few to view them in the table. To add more panels, of different types, click the cog on the row label to the far left",
+          "style": {}
+        }
+      ]
+    },
+    {
+      "title": "Events",
+      "height": "650px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 12,
+          "editable": true,
+          "group": [
+            "default"
+          ],
+          "type": "table",
+          "size": 100,
+          "pages": 5,
+          "offset": 0,
+          "sort": [
+            "_id",
+            "desc"
+          ],
+          "style": {
+            "font-size": "9pt"
+          },
+          "overflow": "min-height",
+          "fields": [],
+          "highlight": [],
+          "sortable": true,
+          "header": true,
+          "paging": true,
+          "spyable": true,
+          "queries": {
+            "mode": "all",
+            "ids": [
+              0
+            ]
+          },
+          "field_list": true,
+          "status": "Stable",
+          "trimFactor": 300,
+          "normTimes": true
         }
       ]
     }
   ],
   "editable": true,
+  "style": "light",
   "index": {
     "interval": "none",
     "pattern": "[logstash-]YYYY.MM.DD",
     "default": "_all"
+  },
+  "failover": false,
+  "panel_hints": true,
+  "loader": {
+    "save_gist": false,
+    "save_elasticsearch": true,
+    "save_local": true,
+    "save_default": true,
+    "save_temp": true,
+    "save_temp_ttl_enable": true,
+    "save_temp_ttl": "30d",
+    "load_gist": true,
+    "load_elasticsearch": true,
+    "load_elasticsearch_size": 20,
+    "load_local": true,
+    "hide": false
   }
 }
