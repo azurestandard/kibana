@@ -1,5 +1,5 @@
 {
-  "title": "Your Basic Dashboard",
+  "title": "Start Here",
   "services": {
     "query": {
       "idQueue": [
@@ -34,6 +34,72 @@
   },
   "rows": [
     {
+      "title": "Introduction",
+      "height": "150px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 4,
+          "editable": true,
+          "type": "text",
+          "loadingEditor": false,
+          "status": "Stable",
+          "mode": "markdown",
+          "content": "This is a training dashboard, and a good place to start customizing a dashboard to your needs.\n\nEverything in the dashboards can be edited (though once you have something the way you want it, you can turn editing off) If you click on the title \"Your Basic Dashboard\" above you can edit it. If you click on the cog/gear icon next to something, you can edit it. And the X icon is used throughout to delete a graph, text area, or table.",
+          "style": {},
+          "title": "Introduction"
+        },
+        {
+          "error": false,
+          "span": 8,
+          "editable": true,
+          "type": "text",
+          "loadingEditor": false,
+          "status": "Stable",
+          "mode": "markdown",
+          "content": "The page is 12 spans wide, you can add in as many graphs, text areas, etc as you like. By clicking on the cog icon above you can set the width of this area, and select one of 12 graph types that you would like rendered here, or remove this area entirely.",
+          "style": {},
+          "title": "First Step"
+        }
+      ]
+    },
+    {
+      "title": "2nd level introduction",
+      "height": "150px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
+        {
+          "error": false,
+          "span": 2,
+          "editable": true,
+          "type": "text",
+          "loadingEditor": false,
+          "status": "Stable",
+          "mode": "markdown",
+          "content": "You can add more rows by clicking the larger cog at the top, next to the title of this report.",
+          "style": {},
+          "title": "How to add rows"
+        },
+        {
+          "error": false,
+          "span": 6,
+          "editable": true,
+          "type": "text",
+          "loadingEditor": false,
+          "status": "Stable",
+          "mode": "markdown",
+          "content": "The data is stored in \"types\" you can search across as many types as you want, but if you are after something specific (such as email, stock, or product) then it is easiest to filter by that type. \n\nNote too that this text doesn't fill up the entire row, so there is an easy \"Add\" button to the right where you can add another text area, or chart. When you are ready try deleting this and the previous rows help text, cleaning up the dashboard for your report!",
+          "style": {},
+          "title": "Where is the data ?"
+        }
+      ]
+    },
+    {
       "title": "Options",
       "height": "50px",
       "editable": true,
@@ -50,7 +116,7 @@
           "type": "text",
           "status": "Stable",
           "mode": "markdown",
-          "content": "If you have a field with a timestamp in it, you might want to add a 'timepicker' panel here. Click the cog icon over to the left to do so. You can also remove these information text panels there",
+          "content": "If your report / dashboard cares about time, you might want to add a 'timepicker' panel here. Click the cog icon over to the left to do so. You can also remove these information text panels there",
           "style": {},
           "title": "Have a timestamp somewhere?"
         }
@@ -192,7 +258,7 @@
           "type": "text",
           "status": "Stable",
           "mode": "markdown",
-          "content": "### The most generic dashboard ever\nIt's the best I can do without knowing much about your data! I've tried to pick some sane defaults for you. The two *terms* panels to the left of this *text* panel show a breakdown of your document type. \n\nKibana is currently configured to point at the special Elasticsearch *_all* index. You can change that by clicking on the cog icon in the title bar. You can also add rows from that dialog. You can edit individual panels by click on the link that appears in their top right when yuo mouse over them\n\nThe *table* panel below has attempted to list your fields to the left, select a few to view them in the table. To add more panels, of different types, click the cog on the row label to the far left",
+          "content": "### The most generic dashboard ever\nIt's the best I can do without knowing much about the data you are after! The two *terms* panels to the left of this *text* panel show a breakdown of the document types available. \n\nThe *table* panel below has attempted to list your fields to the left, select a few to view them in the table. To add more panels, of different types, click the cog on the row label to the far left\n\nYou can click to zoom in on a graph, search for only some documents within a type, and muliple search, charts, tables, save and share!\n\nAt the upper right hand side are buttons to save, load, or share a dashboard. You can search ElasticSearch for dashboard created by others, and save your own dashboards there. The best way to create a new dashboard is to start with one that is close to what you would like, start editing it, and then save it with a new name when you are done. Have fun reporting!\n\nOptionally in the search you can use an \"advanced\" query syntax, which is outlined here:\nhttp://lucene.apache.org/core/2_9_4/queryparsersyntax.html",
           "style": {}
         }
       ]
@@ -244,12 +310,12 @@
     }
   ],
   "editable": true,
-  "style": "light",
   "index": {
     "interval": "none",
     "pattern": "[logstash-]YYYY.MM.DD",
     "default": "_all"
   },
+  "style": "light",
   "failover": false,
   "panel_hints": true,
   "loader": {
