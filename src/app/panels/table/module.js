@@ -33,8 +33,16 @@ function (angular, app, _, kbn, moment) {
   var module = angular.module('kibana.panels.table', []);
   app.useModule(module);
 
-  module.controller('table', function($rootScope, $scope, fields, querySrv, dashboard, filterSrv) {
+  module.controller('table', function($rootScope, $scope, $modal, $q, $compile, fields, querySrv, dashboard, filterSrv) {
     $scope.panelMeta = {
+      modals : [
+        {
+          description: "Inspect",
+          icon: "icon-info-sign",
+          partial: "app/partials/inspector.html",
+          show: $scope.panel.spyable
+        }
+      ],
       editorTabs : [
         {
           title:'Paging',
@@ -70,6 +78,7 @@ function (angular, app, _, kbn, moment) {
       header  : true,
       paging  : true,
       field_list: true,
+      all_fields: false,
       trimFactor: 300,
       normTimes : true,
       spyable : true
@@ -78,21 +87,60 @@ function (angular, app, _, kbn, moment) {
 
     $scope.init = function () {
       $scope.Math = Math;
-
+      $scope.metaFields = [];
+      $scope.identity = angular.identity;
       $scope.$on('refresh',function(){$scope.get_data();});
 
       $scope.fields = fields;
       $scope.get_data();
     };
 
+    // Create a percent function for the view
     $scope.percent = kbn.to_percent;
 
-    $scope.toggle_micropanel = function(field) {
-      var docs = _.pluck($scope.data,'_source');
+    $scope.termsModal = function(field,chart) {
+      $scope.modalField = field;
+      showModal(
+        '{"height":"300px","chart":"'+chart+'","field":"'+field+'"}','terms');
+    };
+
+    $scope.statsModal = function(field) {
+      $scope.modalField = field;
+      showModal(
+        '{"field":"'+field+'"}','statistics');
+    };
+
+    var showModal = function(panel,type) {
+
+      $scope.facetPanel = panel;
+      $scope.facetType = type;
+
+      // create a new modal. Can't reuse one modal unforunately as the directive will not
+      // re-render on show.
+      var panelModal = $modal({
+        template: './app/panels/table/modal.html',
+        persist: true,
+        show: false,
+        scope: $scope,
+        keyboard: false
+      });
+
+      // and show it
+      $q.when(panelModal).then(function(modalEl) {
+        modalEl.modal('show');
+      });
+    };
+
+    $scope.toggle_micropanel = function(field,groups) {
+      var docs = _.map($scope.data,function(_d){return _d.kibana._source;});
+      var topFieldValues = kbn.top_field_values(docs,field,10,groups);
       $scope.micropanel = {
         field: field,
-        values : kbn.top_field_values(docs,field,10),
+        grouped: groups,
+        values : topFieldValues.counts,
+        hasArrays : topFieldValues.hasArrays,
         related : kbn.get_related_fields(docs,field),
+        limit: 10,
         count: _.countBy(docs,function(doc){return _.contains(_.keys(doc),field);})['true']
       };
     };
@@ -128,8 +176,9 @@ function (angular, app, _, kbn, moment) {
     };
 
     $scope.toggle_details = function(row) {
-      row.kibana = row.kibana || {};
-      row.kibana.details = !row.kibana.details ? $scope.without_kibana(row) : false;
+      row.kibana.details = row.kibana.details ? false : true;
+      row.kibana.view = row.kibana.view || 'table';
+      //row.kibana.details = !row.kibana.details ? $scope.without_kibana(row) : false;
     };
 
     $scope.page = function(page) {
@@ -148,17 +197,21 @@ function (angular, app, _, kbn, moment) {
       } else {
         query = angular.toJson(value);
       }
-      filterSrv.set({type:'field',field:field,query:query,mandate:(negate ? 'mustNot':'must')});
       $scope.panel.offset = 0;
-      dashboard.refresh();
+      filterSrv.set({type:'field',field:field,query:query,mandate:(negate ? 'mustNot':'must')});
     };
 
     $scope.fieldExists = function(field,mandate) {
       filterSrv.set({type:'exists',field:field,mandate:mandate});
-      dashboard.refresh();
     };
 
     $scope.get_data = function(segment,query_id) {
+      var
+        _segment,
+        request,
+        boolQuery,
+        results;
+
       $scope.panel.error =  false;
 
       // Make sure we have everything for the request to complete
@@ -170,12 +223,12 @@ function (angular, app, _, kbn, moment) {
 
       $scope.panel.queries.ids = querySrv.idsByMode($scope.panel.queries);
 
-      var _segment = _.isUndefined(segment) ? 0 : segment;
+      _segment = _.isUndefined(segment) ? 0 : segment;
       $scope.segment = _segment;
 
-      var request = $scope.ejs.Request().indices(dashboard.indices[_segment]);
+      request = $scope.ejs.Request().indices(dashboard.indices[_segment]);
 
-      var boolQuery = $scope.ejs.BoolQuery();
+      boolQuery = $scope.ejs.BoolQuery();
       _.each($scope.panel.queries.ids,function(id) {
         boolQuery = boolQuery.should(querySrv.getEjsObj(id));
       });
@@ -196,7 +249,7 @@ function (angular, app, _, kbn, moment) {
 
       $scope.populate_modal(request);
 
-      var results = request.doSearch();
+      results = request.doSearch();
 
       // Populate scope when we have results
       results.then(function(results) {
@@ -217,21 +270,29 @@ function (angular, app, _, kbn, moment) {
         // Check that we're still on the same query, if not stop
         if($scope.query_id === query_id) {
           $scope.data= $scope.data.concat(_.map(results.hits.hits, function(hit) {
-            return {
-              _source   : kbn.flatten_json(hit._source),
-              highlight : kbn.flatten_json(hit.highlight||{}),
-              _type     : hit._type,
-              _index    : hit._index,
-              _id       : hit._id,
-              _sort     : hit.sort
+            var
+              _h = _.clone(hit),
+              _p = _.omit(hit,'_source','sort','_score');
+
+            $scope.metaFields = _.union(_.keys(_p),$scope.metaFields);
+
+            // _source is kind of a lie here, never display it, only select values from it
+            _h.kibana = {
+              _source : _.extend(kbn.flatten_json(hit._source),_p),
+              highlight : kbn.flatten_json(hit.highlight||{})
             };
+            return _h;
           }));
 
           $scope.hits += results.hits.total;
 
           // Sort the data
           $scope.data = _.sortBy($scope.data, function(v){
-            return v._sort[0];
+            if(!_.isUndefined(v.sort)) {
+              return v.sort[0];
+            } else {
+              return 0;
+            }
           });
 
           // Reverse if needed
@@ -241,6 +302,9 @@ function (angular, app, _, kbn, moment) {
 
           // Keep only what we need for the set
           $scope.data = $scope.data.slice(0,$scope.panel.size * $scope.panel.pages);
+
+          // Populate current_fields list
+          $scope.current_fields = kbn.get_all_fields($scope.data);
 
         } else {
           return;
@@ -263,10 +327,9 @@ function (angular, app, _, kbn, moment) {
     };
 
     $scope.without_kibana = function (row) {
-      return {
-        _source   : row._source,
-        highlight : row.highlight
-      };
+      var _c = _.clone(row);
+      delete _c.kibana;
+      return _c;
     };
 
     $scope.set_refresh = function (state) {
@@ -278,6 +341,20 @@ function (angular, app, _, kbn, moment) {
         $scope.get_data();
       }
       $scope.refresh =  false;
+    };
+
+    $scope.locate = function(obj, path) {
+      path = path.split('.');
+      var arrayPattern = /(.+)\[(\d+)\]/;
+      for (var i = 0; i < path.length; i++) {
+        var match = arrayPattern.exec(path[i]);
+        if (match) {
+          obj = obj[match[1]][parseInt(match[2],10)];
+        } else {
+          obj = obj[path[i]];
+        }
+      }
+      return obj;
     };
 
 
@@ -303,6 +380,38 @@ function (angular, app, _, kbn, moment) {
     return function(text,length,factor) {
       if (!_.isUndefined(text) && !_.isNull(text) && text.toString().length > 0) {
         return text.length > length/factor ? text.substr(0,length/factor)+'...' : text;
+      }
+      return '';
+    };
+  });
+
+
+
+  module.filter('tableJson', function() {
+    var json;
+    return function(text,prettyLevel) {
+      if (!_.isUndefined(text) && !_.isNull(text) && text.toString().length > 0) {
+        json = angular.toJson(text,prettyLevel > 0 ? true : false);
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if(prettyLevel > 1) {
+          /* jshint maxlen: false */
+          json = json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'number';
+            if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                cls = 'key strong';
+              } else {
+                cls = '';
+              }
+            } else if (/true|false/.test(match)) {
+              cls = 'boolean';
+            } else if (/null/.test(match)) {
+              cls = 'null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+          });
+        }
+        return json;
       }
       return '';
     };

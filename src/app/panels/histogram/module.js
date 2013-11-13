@@ -40,7 +40,8 @@ define([
   'jquery.flot.pie',
   'jquery.flot.selection',
   'jquery.flot.time',
-  'jquery.flot.stack'
+  'jquery.flot.stack',
+  'jquery.flot.stackpercent'
 ],
 function (angular, app, $, _, kbn, moment, timeSeries) {
 
@@ -51,6 +52,14 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
 
   module.controller('histogram', function($scope, querySrv, dashboard, filterSrv) {
     $scope.panelMeta = {
+      modals : [
+        {
+          description: "Inspect",
+          icon: "icon-info-sign",
+          partial: "app/partials/inspector.html",
+          show: $scope.panel.spyable
+        }
+      ],
       editorTabs : [
         {
           title:'Queries',
@@ -75,6 +84,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
       auto_int    : true,
       resolution  : 100,
       interval    : '5m',
+      intervals   : ['auto','1s','1m','5m','10m','30m','1h','3h','12h','1d','1w','1M','1y'],
       fill        : 0,
       linewidth   : 3,
       timezone    : 'browser', // browser, utc or a standard timezone
@@ -89,6 +99,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
       'y-axis'    : true,
       percentage  : false,
       interactive : true,
+      options     : true,
       tooltip     : {
         value_type: 'cumulative',
         query_as_alias: false
@@ -98,6 +109,8 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
     _.defaults($scope.panel,_d);
 
     $scope.init = function() {
+      // Hide view options by default
+      $scope.options = false;
       $scope.$on('refresh',function(){
         $scope.get_data();
       });
@@ -106,12 +119,25 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
 
     };
 
+    $scope.set_interval = function(interval) {
+      if(interval !== 'auto') {
+        $scope.panel.auto_int = false;
+        $scope.panel.interval = interval;
+      } else {
+        $scope.panel.auto_int = true;
+      }
+    };
+
+    $scope.interval_label = function(interval) {
+      return $scope.panel.auto_int && interval === $scope.panel.interval ? interval+" (auto)" : interval;
+    };
+
     /**
      * The time range effecting the panel
      * @return {[type]} [description]
      */
     $scope.get_time_range = function () {
-      var range = $scope.range = filterSrv.timeRange('min');
+      var range = $scope.range = filterSrv.timeRange('last');
       return range;
     };
 
@@ -263,7 +289,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
     // function $scope.zoom
     // factor :: Zoom factor, so 0.5 = cuts timespan in half, 2 doubles timespan
     $scope.zoom = function(factor) {
-      var _range = filterSrv.timeRange('min');
+      var _range = filterSrv.timeRange('last');
       var _timespan = (_range.to.valueOf() - _range.from.valueOf());
       var _center = _range.to.valueOf() - _timespan/2;
 
@@ -282,13 +308,10 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
       }
       filterSrv.set({
         type:'time',
-        from:moment.utc(_from),
-        to:moment.utc(_to),
+        from:moment.utc(_from).toDate(),
+        to:moment.utc(_to).toDate(),
         field:$scope.panel.time_field
       });
-
-      dashboard.refresh();
-
     };
 
     // I really don't like this function, too much dom manip. Break out into directive?
@@ -307,6 +330,11 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
       $scope.refresh =  false;
       $scope.$emit('render');
     };
+
+    $scope.render = function() {
+      $scope.$emit('render');
+    };
+
   });
 
   module.directive('histogramChart', function(dashboard, filterSrv) {
@@ -339,7 +367,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
           } catch(e) {return;}
 
           // Set barwidth based on specified interval
-          var barwidth = kbn.interval_to_seconds(scope.panel.interval)*1000;
+          var barwidth = kbn.interval_to_ms(scope.panel.interval);
 
           var stack = scope.panel.stack ? true : null;
 
@@ -348,11 +376,12 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
             var options = {
               legend: { show: false },
               series: {
-                //stackpercent: scope.panel.stack ? scope.panel.percentage : false,
+                stackpercent: scope.panel.stack ? scope.panel.percentage : false,
                 stack: scope.panel.percentage ? null : stack,
                 lines:  {
                   show: scope.panel.lines,
-                  fill: scope.panel.fill/10,
+                  // Silly, but fixes bug in stacked percentages
+                  fill: scope.panel.fill === 0 ? 0.001 : scope.panel.fill/10,
                   lineWidth: scope.panel.linewidth,
                   steps: false
                 },
@@ -384,6 +413,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
                 max: _.isUndefined(scope.range.to) ? null : scope.range.to.getTime(),
                 timeformat: time_format(scope.panel.interval),
                 label: "Datetime",
+                ticks: elem.width()/100
               },
               grid: {
                 backgroundColor: null,
@@ -401,9 +431,13 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
             // so that the stacking happens in the proper order
             var required_times = [];
             if (scope.data.length > 1) {
-              required_times = _.uniq(Array.prototype.concat.apply([], _.map(scope.data, function (query) {
+              required_times = Array.prototype.concat.apply([], _.map(scope.data, function (query) {
                 return query.time_series.getOrderedTimes();
-              })).sort(), true);
+              }));
+              required_times = _.uniq(required_times.sort(function (a, b) {
+                // decending numeric sort
+                return a-b;
+              }), true);
             }
 
             for (var i = 0; i < scope.data.length; i++) {
@@ -413,7 +447,7 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
             scope.plot = $.plot(elem, scope.data, options);
 
           } catch(e) {
-            elem.text(e);
+            // Nothing to do here
           }
         }
 
@@ -462,11 +496,10 @@ function (angular, app, $, _, kbn, moment, timeSeries) {
         elem.bind("plotselected", function (event, ranges) {
           filterSrv.set({
             type  : 'time',
-            from  : moment.utc(ranges.xaxis.from),
-            to    : moment.utc(ranges.xaxis.to),
+            from  : moment.utc(ranges.xaxis.from).toDate(),
+            to    : moment.utc(ranges.xaxis.to).toDate(),
             field : scope.panel.time_field
           });
-          dashboard.refresh();
         });
       }
     };
