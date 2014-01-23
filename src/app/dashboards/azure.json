@@ -137,24 +137,6 @@
       ]
     },
     {
-      "title": "Filters",
-      "height": "50px",
-      "editable": true,
-      "collapse": true,
-      "collapsable": true,
-      "panels": [
-        {
-          "error": false,
-          "span": 12,
-          "editable": true,
-          "group": [
-            "default"
-          ],
-          "type": "filtering"
-        }
-      ]
-    },
-    {
       "title": "Graph",
       "height": "250px",
       "editable": true,
