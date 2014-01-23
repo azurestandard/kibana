@@ -145,7 +145,7 @@
       "panels": [
         {
           "error": false,
-          "span": 3,
+          "span": 6,
           "editable": true,
           "group": [
             "default"
@@ -161,7 +161,7 @@
           "exclude": [],
           "missing": true,
           "other": true,
-          "size": 100,
+          "size": 200,
           "order": "count",
           "style": {
             "font-size": "10pt"
@@ -177,7 +177,7 @@
         },
         {
           "error": false,
-          "span": 3,
+          "span": 6,
           "editable": true,
           "group": [
             "default"
@@ -205,10 +205,19 @@
           "chart": "table",
           "counter_pos": "above",
           "spyable": true
-        },
+        }
+      ]
+    },
+    {
+      "title": "Search",
+      "height": "250px",
+      "editable": true,
+      "collapse": false,
+      "collapsable": true,
+      "panels": [
         {
           "error": false,
-          "span": 6,
+          "span": 12,
           "editable": true,
           "group": [
             "default"
@@ -216,8 +225,9 @@
           "type": "text",
           "status": "Stable",
           "mode": "markdown",
-          "content": "### The most generic dashboard ever\nIt's the best I can do without knowing much about the data you are after! The two *terms* panels to the left of this *text* panel show a breakdown of the document types available. \n\nThe *table* panel below has attempted to list your fields to the left, select a few to view them in the table. To add more panels, of different types, click the cog on the row label to the far left\n\nYou can click to zoom in on a graph, search for only some documents within a type, and muliple search, charts, tables, save and share!\n\nAt the upper right hand side are buttons to save, load, or share a dashboard. You can search ElasticSearch for dashboard created by others, and save your own dashboards there. The best way to create a new dashboard is to start with one that is close to what you would like, start editing it, and then save it with a new name when you are done. Have fun reporting!\n\nOptionally in the search you can use an \"advanced\" query syntax, which is outlined here:\nhttp://lucene.apache.org/core/2_9_4/queryparsersyntax.html",
-          "style": {}
+          "content": "The two *terms* panels above this *text* panel show a breakdown of the document types available. \n\nThe *table* panel below has attempted to list your fields to the left, select a few to view them in the table. To add more panels, of different types, click the cog on the row label to the far left\n\nYou can click to zoom in on a graph, search for only some documents within a type, and muliple search, charts, tables, save and share!\n\nAt the upper right hand side are buttons to save, load, or share a dashboard. You can search ElasticSearch for dashboard created by others, and save your own dashboards there. The best way to create a new dashboard is to start with one that is close to what you would like, start editing it, and then save it with a new name when you are done. Have fun reporting!\n\nOptionally in the search you can use an \"advanced\" query syntax, which is outlined here:\nhttp://lucene.apache.org/core/2_9_4/queryparsersyntax.html",
+          "style": {},
+          "title": "Search"
         }
       ]
     },
