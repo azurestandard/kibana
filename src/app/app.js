@@ -6,15 +6,17 @@ define([
   'jquery',
   'underscore',
   'require',
-
   'elasticjs',
   'bootstrap',
   'angular-sanitize',
   'angular-strap',
   'angular-dragdrop',
-  'extend-jquery'
+  'angular-cookies',
+  'extend-jquery',
+  'bindonce',
 ],
 function (angular, $, _, appLevelRequire) {
+
   "use strict";
 
   var app = angular.module('kibana', []),
@@ -24,6 +26,12 @@ function (angular, $, _, appLevelRequire) {
     // these are the functions that we need to call to register different
     // features if we define them after boot time
     register_fns = {};
+
+  // This stores the Kibana revision number, @REV@ is replaced by grunt.
+  app.constant('kbnVersion',"@REV@");
+
+  // Use this for cache busting partials
+  app.constant('cacheBust',"cache-bust="+Date.now());
 
   /**
    * Tells the application to watch the module, once bootstraping has completed
@@ -59,6 +67,7 @@ function (angular, $, _, appLevelRequire) {
   };
 
   app.config(function ($routeProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
+
     $routeProvider
       .when('/dashboard', {
         templateUrl: 'app/partials/dashboard.html',
@@ -72,6 +81,7 @@ function (angular, $, _, appLevelRequire) {
       .otherwise({
         redirectTo: 'dashboard'
       });
+
     // this is how the internet told me to dynamically add modules :/
     register_fns.controller = $controllerProvider.register;
     register_fns.directive  = $compileProvider.directive;
@@ -85,7 +95,9 @@ function (angular, $, _, appLevelRequire) {
     '$strap.directives',
     'ngSanitize',
     'ngDragDrop',
-    'kibana'
+    'ngCookies',
+    'kibana',
+    'pasvaz.bindonce'
   ];
 
   _.each('controllers directives factories services filters'.split(' '),
@@ -114,7 +126,7 @@ function (angular, $, _, appLevelRequire) {
     angular
       .element(document)
       .ready(function() {
-        $('body').attr('ng-controller', 'DashCtrl');
+        $('html').attr('ng-controller', 'DashCtrl');
         angular.bootstrap(document, apps_deps)
           .invoke(['$rootScope', function ($rootScope) {
             _.each(pre_boot_modules, function (module) {
@@ -127,9 +139,12 @@ function (angular, $, _, appLevelRequire) {
               var $scope = this;
               $scope.requireContext(deps, function () {
                 var deps = _.toArray(arguments);
-                $scope.$apply(function () {
-                  fn.apply($scope, deps);
-                });
+                // Check that this is a valid scope.
+                if($scope.$id) {
+                  $scope.$apply(function () {
+                    fn.apply($scope, deps);
+                  });
+                }
               });
             };
           }]);
