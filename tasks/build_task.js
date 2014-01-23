@@ -6,6 +6,7 @@ module.exports = function(grunt) {
     'clean:on_start',
     'less:dist',
     'copy:everything_but_less_to_temp',
+    'copy:azure_dashboard_to_default',
     'htmlmin:build',
     'cssmin:build',
     'ngmin:build',

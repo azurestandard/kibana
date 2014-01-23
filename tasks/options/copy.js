@@ -6,6 +6,11 @@ module.exports = function(config) {
       expand: true,
       src: ['**/*', '!**/*.less'],
       dest: '<%= tempDir %>'
+    },
+    // clobber upstream's default dashboard with our version
+    azure_dashboard_to_default: {
+      src: '<%= srcDir %>/app/dashboards/azure.json',
+      dest: '<%= tempDir %>/app/dashboards/default.json',
     }
   };
 };
