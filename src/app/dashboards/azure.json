@@ -81,7 +81,7 @@
           "loadingEditor": false,
           "status": "Stable",
           "mode": "markdown",
-          "content": "You can add more rows by clicking the larger cog at the top, next to the title of this report.",
+          "content": "You can add more rows by clicking the cog in the upper right (the one with the “Configure dashboard” tooltip).",
           "style": {},
           "title": "How to add rows"
         },
