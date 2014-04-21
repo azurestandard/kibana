@@ -24,7 +24,7 @@
                 <i bs-tooltip="'Configure row'" data-placement="right" ng-show="row.editable" class="icon-cog pointer"></i>
               </span>
               <span class="row-button bgPrimary" ng-click="toggle_row(row)" ng-show="row.collapsable">
-                <i bs-tooltip="'Expand row'" data-placement="right" ng-show="row.editable" class="icon-caret-left pointer" ></i>
+                <i bs-tooltip="'Expand row'" data-placement="right" ng-show="row.collapsable" class="icon-caret-left pointer" ></i>
               </span>
               <span class="row-button row-text" ng-click="toggle_row(row)" ng-class="{'pointer':row.collapsable}">{{row.title || 'Row '+$index}}</span>
             </div>
@@ -38,7 +38,7 @@
                 <i bs-tooltip="'Configure row'" data-placement="right"  class="icon-cog pointer"></i>
                 <br>
               </div>
-              <div class="bgSuccess row-tab" ng-click="editor.index = 2" config-modal="app/partials/roweditor.html" kbn-model="row">
+              <div class="bgSuccess row-tab" ng-click="editor.index = 2" config-modal="app/partials/roweditor.html" kbn-model="row" ng-show="row.editable">
                 <i class="icon-plus-sign" bs-tooltip="'Add Panel'" data-placement="right"></i>
                 <br>
               </div>
@@ -49,7 +49,7 @@
           <div style="padding-top:0px" ng-if="!row.collapse">
 
             <!-- Panels -->
-            <div ng-repeat="(name, panel) in row.panels|filter:isPanel" ng-hide="panel.hide" class="panel nospace" ng-style="{'width':!panel.span?'100%':(panel.span/1.2)*10+'%'}" data-drop="true" ng-model="row.panels" data-jqyoui-options jqyoui-droppable="{index:$index,mutate:false,onDrop:'panelMoveDrop',onOver:'panelMoveOver(true)',onOut:'panelMoveOut'}" ng-class="{'dragInProgress':dashboard.panelDragging}">
+            <div ng-repeat="(name, panel) in row.panels|filter:isPanel" ng-hide="panel.hide" class="panel nospace" ng-style="{'width':!panel.span?'100%':((panel.span/1.2)*10)+'%'}" data-drop="true" ng-model="row.panels" data-jqyoui-options jqyoui-droppable="{index:$index,mutate:false,onDrop:'panelMoveDrop',onOver:'panelMoveOver(true)',onOut:'panelMoveOut'}" ng-class="{'dragInProgress':dashboard.panelDragging}">
 
               <!-- Content Panel -->
               <div style="position:relative">
@@ -58,11 +58,13 @@
             </div>
 
 
-            <div ng-show="dashboard.panelDragging" class="panel" style="margin:5px;width:30%;background:rgba(100,100,100,0.50)" ng-class="{'dragInProgress':dashboard.panelDragging}" ng-style="{height:row.height}" data-drop="true" ng-model="row.panels" data-jqyoui-options jqyoui-droppable="{index:row.panels.length,mutate:false,onDrop:'panelMoveDrop',onOver:'panelMoveOver',onOut:'panelMoveOut'}">
+            <div ng-show="dashboard.panelDragging && row.panels.length == 0" class="panel panel-filler" style="" ng-class="{'dragInProgress':dashboard.panelDragging}" ng-style="{height:row.height}" data-drop="true" ng-model="row.panels" data-jqyoui-options jqyoui-droppable="{index:row.panels.length,mutate:false,onDrop:'panelMoveDrop',onOver:'panelMoveOver',onOut:'panelMoveOut'}">
+              <h1>Drop here to add to this row</h1>
+              Or drop on top of any other panel to insert in that row
             </div>
 
             <span config-modal="app/partials/roweditor.html" kbn-model="row" ng-show="row.editable && !dashboard.panelDragging">
-              <span ng-click="editor.index = 2" style="margin-top: 3px; margin-left: 5px" ng-show="row.panels.length==0" class="btn btn-mini">Add panel to empty row</btn>
+              <span ng-click="editor.index = 2" style="margin-top: 3px; margin-left: 5px" ng-show="row.panels.length==0" class="btn btn-mini">Add panel to empty row</span>
             </span>
 
           <div class="clearfix"></div>
